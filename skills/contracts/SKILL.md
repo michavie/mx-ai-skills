@@ -30,11 +30,12 @@ This skill provides comprehensive capabilities for developing secure, gas-effici
 When creating a new contract, use `sc-meta` or `mxpy` templates.
 *   **Structure**:
     ```text
-    /wasm          # Output folder
-    /meta          # Build tool
-    /src           # Source code
-    /tests         # RustVM / Rust Scenario tests
-    mxpy.json      # Config
+    /meta          # Build tool (meta-crate) - manages code generation and ABI
+    /src           # Source code - the contract logic trait
+    /wasm          # WASM entry point - links the logic to the VM interface
+    /tests         # Pure Rust tests (Unit & Scenario)
+    /output        # GENERATED after build (.wasm, .abi.json, .mxsc.json)
+    mxpy.json      # Python CLI configuration
     ```
 
 ### 2. Coding Standards (Critical)
@@ -532,10 +533,83 @@ cd meta && cargo run build-dbg
 ```
 
 ### Build Output
+After building, find outputs in the `output/` folder.
+*   **`.wasm`**: The binary deployed to the blockchain.
+*   **`.abi.json`**: Interface definition for frontends and interaction tools.
+*   **`.mxsc.json`**: Metadata used by the Rust scenario framework to locate the contract.
+*   **`.imports.json`**: (Generated) lists dependencies for the VM.
 
-After building, find outputs in `output/`:
-- `my-contract.wasm` - Contract bytecode
-- `my-contract.abi.json` - Contract ABI
+> [!TIP]
+> **First Build**: The first `sc-meta all build` will download a specific Rust toolchain and perform a full compile. This can take several minutes. Subsequent builds are incremental and much faster.
+
+## Contract Lifecycle
+
+### 1. Creation
+Always start from a template to ensure the cargo workspace is correctly linked:
+```bash
+sc-meta new --template empty --name my-contract
+```
+
+### 2. Deployment
+Deployment installs the code at a new address and runs `#[init]`.
+```bash
+mxpy contract deploy \
+    --bytecode output/my-contract.wasm \
+    --proxy https://devnet-api.multiversx.com --chain D \
+    --pem wallet.pem --gas-limit 60000000 \
+    --arguments 1000 "hex:0011" \
+    --send
+```
+
+### 3. Upgrading
+Upgrading replaces the binary but **preserves all storage**.
+*   **Storage Reuse**: The new contract must use the same storage keys (`#[storage_mapper("key")]`) to access existing data.
+*   **Init is NOT called**: Upgrades trigger the `#[upgrade]` function, NOT `#[init]`.
+
+```rust
+#[upgrade]
+fn upgrade(&self, new_param: Option<BigUint>) {
+    if let Some(val) = new_param {
+        self.config_val().set(val);
+    }
+}
+```
+
+```bash
+mxpy contract upgrade <ADDRESS> \
+    --bytecode output/my-contract.wasm \
+    --proxy https://devnet-api.multiversx.com --chain D \
+    --pem wallet.pem --gas-limit 60000000 \
+    --send
+```
+
+## Testing Lifecycle (Deployment Tests)
+Don't just test endpoints; test the deployment flow in Rust:
+
+```rust
+#[test]
+fn test_lifecycle() {
+    let mut world = ScenarioWorld::new();
+    world.register_contract("mxsc:output/my-contract.mxsc.json", MyContract::ContractBuilder);
+
+    // Deploy
+    world.tx()
+        .from("address:owner")
+        .typed(my_contract_proxy::MyContractProxy)
+        .init(initial_value)
+        .code("file:output/my-contract.wasm")
+        .new_address("address:contract")
+        .run();
+
+    // Call
+    world.tx()
+        .from("address:user")
+        .to("address:contract")
+        .typed(my_contract_proxy::MyContractProxy)
+        .my_endpoint(param)
+        .run();
+}
+```
 
 ## Testing
 
