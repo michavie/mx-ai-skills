@@ -18,13 +18,13 @@ This repository is a central hub for **MultiversX AI Expertise**. It provides a 
 Install skills for any AI coding agent (Cursor, Windsurf, Codex, etc.):
 
 ```bash
-npx openskills install multiversx/mx-ai-skills
+npx openskills install michavie/mx-ai-skills
 ```
 
 Or using Vercel's skills CLI:
 
 ```bash
-npx skills install multiversx/mx-ai-skills
+npx skills install michavie/mx-ai-skills
 ```
 
 ---
@@ -153,10 +153,10 @@ mx-ai-skills/
 
 ```bash
 # Install globally
-npx openskills install multiversx/mx-ai-skills -g
+npx openskills install michavie/mx-ai-skills -g
 
 # Or install in current project
-npx openskills install multiversx/mx-ai-skills
+npx openskills install michavie/mx-ai-skills
 ```
 
 
@@ -164,7 +164,7 @@ npx openskills install multiversx/mx-ai-skills
 
 ```bash
 # Clone to your project
-git clone https://github.com/multiversx/mx-ai-skills.git .ai-skills
+git clone https://github.com/michavie/mx-ai-skills.git .ai-skills
 
 # Copy skills to your agent's expected location
 cp -r .ai-skills/skills ~/.cursor/skills/        # Cursor
