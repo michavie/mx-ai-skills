@@ -15,7 +15,7 @@ This skill provides comprehensive capabilities for developing secure, gas-effici
     *   **Patterns**: Data storage, Upgradability, Pausability
 
 2.  **Testing & Verification**
-    *   **Mandos (Scenarios)**: End-to-end blockchain simulation.
+    *   **Rust Scenario Tests**: Preferred method for end-to-end blockchain simulation using the `multiversx-sc-scenario` crate.
     *   **RustVM**: High-speed unit testing.
     *   **Property Testing**: Fuzzing for edge cases.
 
@@ -33,8 +33,7 @@ When creating a new contract, use `sc-meta` or `mxpy` templates.
     /wasm          # Output folder
     /meta          # Build tool
     /src           # Source code
-    /tests         # RustVM tests
-    mandos/        # Scenario tests
+    /tests         # RustVM / Rust Scenario tests
     mxpy.json      # Config
     ```
 
@@ -45,11 +44,12 @@ When creating a new contract, use `sc-meta` or `mxpy` templates.
     *   `VecMapper`: Lists (careful with iteration).
     *   `UnorderedSetMapper`: O(1) checks.
     *   **Optimization**: Do not use `VecMapper` for large datasets; use `MapMapper` or `UnorderedSetMapper`.
+*   **Naming**: Endpoints and views MUST use **camelCase**.
 *   **Reentrancy**: Use `#[reentrancy_lock]` on potentially dangerous endpoints.
 *   **Payment**: ALWAYS specify `#[payable("*")]` or `#[payable("EGLD")]` if expecting tokens.
 
 ### 3. Testing
-*   **Mandos**: Write `.scen.json` files for EVERY endpoint.
+*   **Rust Scenarios**: Use Rust-based tests (`multiversx-sc-scenario`) instead of legacy JSON Mandos tests.
 *   **RustVM**: Use `multiversx_sc_scenario::imports::*` for unit tests in `src/lib.rs` or `tests/`.
 
 ## 📚 Expert Resources (Deep Dive)
@@ -139,7 +139,7 @@ my-contract/
 │   ├── Cargo.toml       # WASM output config
 │   └── src/
 │       └── lib.rs       # WASM entry point
-└── scenarios/           # Test files (optional)
+└── tests/               # Rust-based tests (Unit & Scenarios)
 ```
 
 ## Cargo.toml Configuration
@@ -179,7 +179,7 @@ pub trait MyContract {
         // Called when contract is upgraded
     }
 
-    #[endpoint]
+    #[endpoint(add)]
     fn add(&self, value: BigUint) {
         self.stored_value().update(|v| *v += value);
     }
@@ -378,7 +378,7 @@ let token = TokenIdentifier::from("TOKEN-abc123");
 
 ```rust
 #[payable("EGLD")]
-#[endpoint]
+#[endpoint(depositEgld)]
 fn deposit_egld(&self) {
     let payment = self.call_value().egld_value();
     let amount = payment.clone_value();
@@ -390,7 +390,7 @@ fn deposit_egld(&self) {
 
 ```rust
 #[payable("*")]
-#[endpoint]
+#[endpoint(deposit)]
 fn deposit(&self) {
     let payment = self.call_value().single_esdt();
     let token_id = payment.token_identifier;
@@ -403,7 +403,7 @@ fn deposit(&self) {
 
 ```rust
 #[payable("*")]
-#[endpoint]
+#[endpoint(flexibleDeposit)]
 fn flexible_deposit(&self) {
     let payment = self.call_value().egld_or_single_esdt();
     // Returns EgldOrEsdtTokenPayment
@@ -414,7 +414,7 @@ fn flexible_deposit(&self) {
 
 ```rust
 #[payable("*")]
-#[endpoint]
+#[endpoint(multiDeposit)]
 fn multi_deposit(&self) {
     let payments = self.call_value().all_esdt_transfers();
     for payment in payments.iter() {
@@ -490,7 +490,7 @@ pub trait MyContract: storage::StorageModule {
 
 ```rust
 // Using require!
-#[endpoint]
+#[endpoint(withdraw)]
 fn withdraw(&self, amount: BigUint) {
     let caller = self.blockchain().get_caller();
     require!(
@@ -558,7 +558,13 @@ fn world() -> ScenarioWorld {
 #[test]
 fn test_deploy() {
     let mut world = world();
-    world.run("scenarios/deploy.scen.json");
+    // world.run("scenarios/deploy.scen.json"); // Legacy JSON format
+
+    // Preferred: Pure Rust-based scenario
+    world.sc_deploy()
+        .from("address:owner")
+        .code("file:output/my-contract.wasm")
+        .expect(ExpectStatus::ok());
 }
 ```
 
@@ -759,7 +765,7 @@ pub trait Crowdfunding {
     }
 
     #[payable("*")]
-    #[endpoint]
+    #[endpoint(fund)]
     fn fund(&self) {
         require!(
             self.blockchain().get_block_timestamp() < self.deadline().get(),
@@ -776,7 +782,7 @@ pub trait Crowdfunding {
         self.deposit(&caller).update(|deposit| *deposit += payment.amount);
     }
 
-    #[endpoint]
+    #[endpoint(claim)]
     fn claim(&self) {
         require!(
             self.blockchain().get_block_timestamp() >= self.deadline().get(),
