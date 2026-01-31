@@ -43,21 +43,20 @@ Developing on MultiversX requires specific expertise in Rust (via `multiversx-sc
 
 ## 🛠 Repository Structure
 
-The core logic resides in the `antigravity/` directory, structured for easy ingestion by AI agents:
+The core logic resides in the `skills/` directory, structured for easy ingestion by AI agents:
 
 ```text
 .
+├── skills/
+│   ├── contracts/       # Smart Contract Engineer
+│   ├── frontend/        # dApp Developer
+│   ├── backend/         # Backend Engineer
+│   ├── protocol/        # Protocol Architect
+│   └── expert/          # 40+ granular expert modules
 ├── antigravity/
 │   ├── global_workflows/    # Specialized Agent Roles (Roleplay instructions)
-│   │   ├── rust-sc.md       # Expert Smart Contract Engineer
-│   │   ├── mvx-auditor.md   # Full Stack Security Auditor
-│   │   └── ...              # 20+ other specific roles
-│   ├── skills/              # Targeted Technical Capabilities
-│   │   ├── mvx_sc_best_practices/ # Optimization & Security guidelines
-│   │   ├── mvx_sharp_edges/      # Known pitfalls and WASM behaviors
-│   │   └── ...              # 19+ granular skills
 │   ├── mvx_docs/            # Curated Protocol Documentation
-│   └── GEMINI.md            # Global Workspace Rules & Core AI Personality
+│   └── GEMINI.md            # Global Workspace Rules
 └── README.md                # You are here
 ```
 
@@ -66,7 +65,7 @@ The core logic resides in the `antigravity/` directory, structured for easy inge
 ## 🧩 Core Components
 
 ### 1. Global Workflows (Roles)
-Roles defined in `antigravity/global_workflows/` provide the "Persona" and "Protocol" for specific tasks. 
+Roles defined in `antigravity/global_workflows/` provide the "Persona" and "Protocol" for specific tasks.
 -   **`/mvx-smart-contract-developer`**: Focused on idiomatic Rust, gas efficiency, and storage mappers.
 -   **`/mvx-auditor`**: A rigorous framework for vulnerability research and system flow verification.
 -   **`/mvx-dapp-architect`**: Expert in React integration, `sdk-dapp`, and frontend security.
@@ -118,16 +117,14 @@ These skills are automatically mapped to your workspace. You can invoke specific
 
 ```text
 mx-ai-skills/
-├── skills/                     # Universal Skills (OpenSkills compatible)
-│   ├── multiversx-smart-contracts/
-│   ├── multiversx-dapp-frontend/
-│   ├── multiversx-audit-context/
-│   ├── multiversx-static-analysis/
-│   └── ... (18 total skills)
+├── skills/
+│   ├── contracts/              # Rust Smart Contracts Expert
+│   ├── frontend/               # React & sdk-dapp Expert
+│   ├── backend/                # Go/Py/Node SDKs Expert
+│   └── protocol/               # Core Protocol Architecture
 │
-├── antigravity/                # Antigravity-specific (legacy format)
+├── antigravity/                # Agent global workflows
 │   ├── global_workflows/       # Agent Roles/Personas
-│   ├── skills/                 # Original skills (underscore naming)
 │   ├── mvx_docs/               # Curated documentation
 │   └── GEMINI.md               # Global rules
 │
@@ -139,39 +136,14 @@ mx-ai-skills/
 
 ## Available Skills
 
-### Development
+### Primary Skills
 | Skill | Description |
 |-------|-------------|
-| `multiversx-smart-contracts` | Build, test, deploy smart contracts with Rust |
-| `multiversx-dapp-frontend` | React dApp integration with sdk-dapp |
+| `contracts` | **Smart Contract Engineer**. Build, test, specificy, and audit Rust contracts. Includes security checks and gas optimization. |
+| `frontend` | **dApp Developer**. Integrate React/Next.js apps with `sdk-dapp`. Handle login, signing, and state. |
+| `backend` | **Backend Engineer**. Build microservices, observers, and scripts using Go, Python, or TypeScript (NestJS). |
+| `protocol` | **Protocol Architect**. Deep understanding of Sharding, ESDT mechanics, consensus, and network configuration. |
 
-### Security & Auditing
-| Skill | Description |
-|-------|-------------|
-| `multiversx-audit-context` | Build mental models before security audits |
-| `multiversx-entry-points` | Map contract attack surface |
-| `multiversx-diff-review` | Review changes between contract versions |
-| `multiversx-fix-verification` | Verify vulnerability fixes |
-| `multiversx-dapp-audit` | Audit frontend security |
-| `multiversx-static-analysis` | Manual and automated code analysis |
-| `multiversx-constant-time` | Verify timing-safe crypto operations |
-| `multiversx-variant-analysis` | Find similar bugs after initial discovery |
-
-### Testing & Quality
-| Skill | Description |
-|-------|-------------|
-| `multiversx-property-testing` | Fuzzing and property-based testing |
-| `multiversx-spec-compliance` | Verify implementations match specs |
-| `multiversx-project-culture` | Assess codebase quality and maturity |
-
-### Tooling & Reference
-| Skill | Description |
-|-------|-------------|
-| `multiversx-semgrep-creator` | Create custom security scanning rules |
-| `multiversx-wasm-debug` | Debug and optimize WASM binaries |
-| `multiversx-sharp-edges` | Platform-specific gotchas catalog |
-| `multiversx-protocol-experts` | Deep protocol knowledge (sharding, ESDT) |
-| `multiversx-clarification-expert` | Ask targeted clarifying questions |
 
 ---
 
@@ -187,12 +159,6 @@ npx openskills install multiversx/mx-ai-skills -g
 npx openskills install multiversx/mx-ai-skills
 ```
 
-### For Antigravity
-
-Use the original format in `antigravity/skills/` with underscore naming:
-```
-antigravity/skills/mvx_static_analysis/SKILL.md
-```
 
 ### Manual Installation
 
